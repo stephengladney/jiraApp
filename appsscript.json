@@ -1,0 +1,67 @@
+{
+  "timeZone": "America/New_York",
+  "dependencies": {
+    "enabledAdvancedServices": [{
+      "userSymbol": "Sheets",
+      "serviceId": "sheets",
+      "version": "v4"
+    }]
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "sheets": {
+    "macros": [{
+      "menuName": "advance",
+      "functionName": "advance",
+      "defaultShortcut": "Ctrl+Alt+Shift+0"
+    }, {
+      "menuName": "revert",
+      "functionName": "revert",
+      "defaultShortcut": "Ctrl+Alt+Shift+8"
+    }, {
+      "menuName": "blocker",
+      "functionName": "blocker",
+      "defaultShortcut": "Ctrl+Alt+Shift+9"
+    }, {
+      "menuName": "setAsGoalHit",
+      "functionName": "setAsGoalHit",
+      "defaultShortcut": "Ctrl+Alt+Shift+7"
+    }, {
+      "menuName": "unSetAsGoal",
+      "functionName": "unSetAsGoal",
+      "defaultShortcut": "Ctrl+Alt+Shift+5"
+    }, {
+      "menuName": "setAsGoal",
+      "functionName": "setAsGoal",
+      "defaultShortcut": "Ctrl+Alt+Shift+7"
+    }, {
+      "menuName": "setAsStart",
+      "functionName": "setAsStart",
+      "defaultShortcut": "Ctrl+Alt+Shift+6"
+    }, {
+      "menuName": "getColorAbove",
+      "functionName": "getColorAbove"
+    }, {
+      "menuName": "clearEverything",
+      "functionName": "clearEverything",
+      "defaultShortcut": "Ctrl+Alt+Shift+2"
+    }, {
+      "menuName": "coresLightText",
+      "functionName": "coresLightText"
+    }, {
+      "menuName": "startNewWeek",
+      "functionName": "startNewWeek"
+    }, {
+      "menuName": "dateNow",
+      "functionName": "dateNow"
+    }, {
+      "menuName": "whoAmI",
+      "functionName": "whoAmI"
+    }, {
+      "menuName": "amIGoal",
+      "functionName": "amIGoal"
+    }, {
+      "menuName": "weReady",
+      "functionName": "weReady"
+    }]
+  }
+}
