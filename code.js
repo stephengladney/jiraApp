@@ -1,3 +1,5 @@
+// Google Scripts relies on JavaScript 1.8
+
 var app = SpreadsheetApp;
 var active = app.getActive();
 var ui = app.getUi();
