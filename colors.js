@@ -23,7 +23,7 @@ function itemCurrentStateColor() {
   if (itemBlocker.getValue() == "" && itemCurrent.getValue() < itemGoal.getValue()) {
     return "#ffe599"
   }
-  if (itemCurrent.getValue() >= itemGoal.getValue()) {
+  if (itemGoal.getValue() != "" && itemCurrent.getValue() >= itemGoal.getValue()) {
     return "#57bb8a"
   }
   if (itemBlocker.getValue() != "") {

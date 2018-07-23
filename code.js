@@ -1,5 +1,3 @@
-// Google Scripts relies on JavaScript 1.8
-
 var app = SpreadsheetApp;
 var active = app.getActive();
 var ui = app.getUi();
@@ -181,16 +179,15 @@ function updateLast(direction) {
 }
 
 function startNewWeek() {
-  ui.alert("change reference to sheet called db");
-  return;
-  //
+  var rItem;
+  var rItemCurrentPosition;
   if (stagedForNewWeek.getValue() == false) {
   var rowsToTransfer = [];  
-  for (var r = 5; r < 20; r++){
-    if (sheet.getRange(r, 6).getValue() == "") { break; }
-    var itemCurrentPosition = sheet.getRange(r, 28).getValue();
-    var itemGoal = sheet.getRange(r, 27).getValue();
-    if (itemCurrentPosition < itemGoal) {
+  for (var r = 5; r < 40; r++){
+    rItem = sheet.getRange(r, 6).getValue();
+    rItemCurrentPosition = sheet.getRange(r, 28).getValue();
+    if (sheet.getRange(r, 2).getValue() == "Notes") { break }
+    if (rItem != "" && rItemCurrentPosition < gaColumn) {
       rowsToTransfer.push({"values": [{"userEnteredValue": {"boolValue": true}}]});
     }
     else { 
@@ -212,27 +209,74 @@ function startNewWeek() {
           "fields": "userEnteredValue"
         }
       }
-    ]};
-    
-    sheet.showColumns(4);
-    ui.alert("A wild column appears!", "Check those you wish to roll over to next week. Items that are not at goal have been checked for you. When you are ready to create the new sheet, hit the New week command again.", ui.ButtonSet.OK);
-    stagedForNewWeek.setValue(true);
-  }
-  else {
-       var resource = {"requests": [
-         {
+      ,
+      {
            "duplicateSheet": {
              "sourceSheetId": 506422022,
              "insertSheetIndex": 0,
              "newSheetName": dateNow()
            }
-         }
-       ]
-                      }
-       }
-      Sheets.Spreadsheets.batchUpdate(resource, active.getId());
+      }]};
+    
+    sheet.showColumns(4);
+//    ui.alert("A wild column appears!", "Check those you wish to roll over to next week. Items that are not at goal have been checked for you. When you are ready to create the new sheet, hit the New week command again.", ui.ButtonSet.OK);
+                          
+  Sheets.Spreadsheets.batchUpdate(resource, active.getId());
+  stagedForNewWeek.setValue(true);
+  }
+  else {
+    var newSheet = app.getActiveSpreadsheet().getSheetByName(dateNow());
+    var oldSheet = app.getActiveSpreadsheet().getSheetByName(currentWeek.getValue());
+    var rowsToCopy = [];
+    
+    for (var r = 5; r < 40; r++) {
+      if (oldSheet.getRange(r, 4).getValue() == true) { rowsToCopy.push(r); }
+    }
+  
+    rowsToCopy.forEach(function(row,i) {
+      var r = i + 5;
+      var oldSheet_epic = oldSheet.getRange(row, 2).getValue();
+      var oldSheet_link = oldSheet.getRange(row, 3).getFormula();
+      var oldSheet_jira = oldSheet.getRange(row, 5).getValue();
+      var oldSheet_item = oldSheet.getRange(row, 6).getValue();
+      var oldSheet_engineer = oldSheet.getRange(row, 7).getValue();
+      var oldSheet_atBat = oldSheet.getRange(row, 8).getValue();
+      var oldSheet_rCurrent = oldSheet.getRange(row, planColumn + 18).getValue();
+
+      var newSheet_epic = newSheet.getRange(r, 2);
+      var newSheet_link  = newSheet.getRange(r, 3);
+      var newSheet_jira = newSheet.getRange(r, 5);
+      var newSheet_item = newSheet.getRange(r, 6);
+      var newSheet_engineer = newSheet.getRange(r, 7);
+      var newSheet_atBat = newSheet.getRange(r, 8);
+
+      newSheet.getRange(r,6).activate();
+      newSheet_epic.setValue(oldSheet_epic);
+      newSheet_link.setFormula(oldSheet_link);
+      newSheet_jira.setValue(oldSheet_jira);
+      newSheet_item.setValue(oldSheet_item);
+      newSheet_engineer.setValue(oldSheet_engineer);
+      newSheet_atBat.setValue(oldSheet_atBat);
+      sheet = newSheet;
+      itemStart = newSheet.getRange(r, planColumn + 16);
+      itemCurrent = newSheet.getRange(r, planColumn + 18);
+      itemCell = newSheet_item
+      jiraCell = newSheet_jira
+      stagedCell = newSheet.getRange(r, 4);
+      itemWaitingOn = newSheet_atBat;
+      itemLast = newSheet.getRange(r, 9);
+      itemGoal = newSheet.getRange(r, planColumn + 17);
+      itemBlocker = newSheet.getRange(r, planColumn + 19);
+      setAsStart(newSheet.getRange(r, oldSheet_rCurrent));        
+      newSheet.getRange(r, 2).setBackground(oldSheet.getRange(row, 2).getBackground()); // Set epic background
+      newSheet.getRange(r, 2).setFontColor(oldSheet.getRange(row, 2).getFontColor()); // Set epic font color
+      stagedCell.setValue(""); // Clear staged for next week
+    });
+
+    currentWeek.setValue(dateNow());
+  }
 }
-         
+
 
 // MISC FUNCTIONS
 

@@ -17,18 +17,21 @@ function unSetAsGoal() {
   itemGoal.setValue(null);
 }
 
-function setAsStart() { 
-  cell
+function setAsStart(cellToSet) { 
+  if (!cellToSet) { cellToSet = cell }
+  cellToSet
   .setBorder(true, true, true, true, false, false, "#efefef", app.BorderStyle.SOLID)
   .setBackground("#4a86e8")
   .setFontColor("#ffffff")
   .setValue("START");
-  setItemStart(cellColumn);
-  setItemCurrent(cellColumn);
+  setItemStart(cellToSet.getColumn());
+  setItemCurrent(cellToSet.getColumn());
+  Logger.log(cellToSet.getColumn());
   updateLast("start");
-  assignWaitingOn(cell);
+  assignWaitingOn(cellToSet);
   updateCurrentStateColors();
 }
+
 
 function setAsBlocker() {
   cell
