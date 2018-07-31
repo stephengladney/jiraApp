@@ -2,6 +2,9 @@ function stepBack() {
   if (!isItemStart(cellLeft) && !isItemGoal(cellLeft) && !isItemBlocker(cellLeft)) { 
     cellLeft.setBackground(revertColorLeft);
   }
+  if (!isItemStart(cell) && !isItemGoal(cell) && !isItemBlocker(cell) && cellRight.getBackground() == "#20124d") {
+    cell.setBackground(revertColor);
+  }
   sheet.setActiveSelection(cellLeftA1Notation);
 }
 
@@ -24,8 +27,6 @@ function advance() {
   cell.setValue("");
   cell.setBorder(true, true, true, true, true, true, "#351c75", app.BorderStyle.SOLID);
   }
-  
-  if (canProgress) { 
     
     setItemCurrent(cellColumn + 1);
     assignWaitingOn(cellRight);
@@ -34,7 +35,6 @@ function advance() {
     else if (markingGA) {updateLast("GA") }
     if (cellColumn == toDoColumn && itemEngineer.getValue() == "") { ui.alert("(╯°□°）╯ Y U NO SPECIFY ENGINEER?", "I even made it a nice dropdown for you...", ui.ButtonSet.OK); }
     stepForward(); 
-  }
 }
 
 function blocker() {
@@ -66,12 +66,10 @@ function blocker() {
 
 function revert() {
   
-  if (canRevert) {
-
   setItemCurrent(cellColumn - 1);
   assignWaitingOn(cellLeft);
   updateCurrentStateColors();
   updateLast("revert");
   stepBack();
-  }
+
 }

@@ -7,11 +7,6 @@ var sheet = spreadsheet.getActiveSheet();
 var cell = sheet.getActiveCell();
 var cellColumn = cell.getColumn();
 var cellRow = cell.getRow();
-
-var settings = spreadsheet.getSheetByName("Settings");
-var designer = settings.getRange(5, 2).getValue();
-var qaEngineer = settings.getRange(6, 2).getValue();
-var productManager = settings.getRange(7, 2).getValue();
     
 var columns = [0,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
     
@@ -45,8 +40,8 @@ var r4mColumn = planColumn + 7;
 var mergedColumn = planColumn + 8;
 var gaColumn = planColumn + 9;
       
-var canProgress = (cellColumn >= planColumn && cellColumn < gaColumn);
-var canRevert = (cellColumn >= toDoColumn && cellColumn <= gaColumn);
+//var canProgress = (cellColumn >= planColumn && cellColumn < gaColumn);
+//var canRevert = (cellColumn >= toDoColumn && cellColumn <= gaColumn);
       
 var itemStart = sheet.getRange(cellRow, planColumn + 16);
 var itemGoal = sheet.getRange(cellRow, planColumn + 17);
@@ -54,21 +49,43 @@ var itemCurrent = sheet.getRange(cellRow, planColumn + 18);
 var itemBlocker = sheet.getRange(cellRow, planColumn + 19);
     
 var markingGA = (cellColumn == gaColumn - 1);
+
+var settings = spreadsheet.getSheetByName("Settings");
+var designer = settings.getRange(5, 2).getValue();
+var qaEngineer = settings.getRange(6, 2).getValue();
+var product = settings.getRange(7, 2).getValue();
       
 var db = spreadsheet.getSheetByName('db');
 var currentWeek = db.getRange(1, 2);
 var stagedForNewWeek = db.getRange(2, 2);
+var now = new Date();
+// you took out api token declaration here
 
 /*
 NOTES:
 "Light" gray is light gray 1
 */
 
+function resetCell(row, column) {
+  cell = sheet.getRange(row, column);
+  cellColumn = column;
+  cellRow = row;       
+  cellLeft = sheet.getRange(cellRow, cellColumn - 1);
+  cellRight = sheet.getRange(cellRow, cellColumn + 1);
+  cellLeftA1Notation = columns[cellColumn - 1] + cellRow;
+  cellRightA1Notation = columns[cellColumn + 1] + cellRow;
+  advanceColor = goodGradient[cellColumn];
+  advanceColorRight = goodGradient[cellColumn + 1];
+  revertColor = badGradient[cellColumn];
+  revertColorLeft = badGradient[cellColumn - 1];
+
+}
+
 function isItemStart(cell) { return (cell.getColumn() == itemStart.getValue()) }
 function isItemGoal(cell) { return (cell.getColumn() == itemGoal.getValue()) }
 function isItemBlocker(cell) { return (cell.getColumn() == itemBlocker.getValue()) }
   
-// ASSIGN OWNER BASED ON COLUMN
+
 
 function assignWaitingOn(cell) {
   switch(cell.getColumn()) {
@@ -82,13 +99,13 @@ function assignWaitingOn(cell) {
   itemWaitingOn.setValue(qaEngineer);
   break;
     case acceptColumn:
-  itemWaitingOn.setValue(pro);
+  itemWaitingOn.setValue(product);
   break;
     case gaColumn:
   itemWaitingOn.setValue(null)
   break;
     default:
-      itemWaitingOn.setValue("Cores Light");
+      itemWaitingOn.setValue("TEAM");
   }
 }
 
@@ -257,11 +274,13 @@ function startNewWeek() {
       newSheet_item.setValue(oldSheet_item);
       newSheet_engineer.setValue(oldSheet_engineer);
       newSheet_atBat.setValue(oldSheet_atBat);
+
+      // Set dependent variables to new sheet before executing setAsStart
       sheet = newSheet;
-      itemStart = newSheet.getRange(r, planColumn + 16);
-      itemCurrent = newSheet.getRange(r, planColumn + 18);
-      itemCell = newSheet_item
-      jiraCell = newSheet_jira
+      itemStart = newSheet.getRange(r, planColumn + 16); 
+      itemCurrent = newSheet.getRange(r, planColumn + 18); 
+      itemCell = newSheet_item; 
+      jiraCell = newSheet_jira;
       stagedCell = newSheet.getRange(r, 4);
       itemWaitingOn = newSheet_atBat;
       itemLast = newSheet.getRange(r, 9);
@@ -274,6 +293,7 @@ function startNewWeek() {
     });
 
     currentWeek.setValue(dateNow());
+    stagedForNewWeek.setValues(false);
   }
 }
 
@@ -288,7 +308,8 @@ function dateNow() {
   var today  = new Date(),
       day = today.getDate(),
       m = today.getMonth() + 1;
-  return String(m + "/" + day);
+
+  return String(m + "/" + day) 
 }
 
 
@@ -300,7 +321,75 @@ function weekdayNow() {
   return days[day];
 }
 
-// CORES LIGHT FORMATTING
+function reformatJIRADate(str) {
+  return new Date(str.substring(0,4), Number(str.substring(5,7)) - 1, str.substring(8,10), str.substring(11,13), str.substring(14,16));
+}
+
+function dateDiff(first, second) {
+    return Math.round((second - first)/(1000*60*60*24));
+}
+
+function checkTime(i) { if (i < 10) { return "0" + i } else { return i } }
+function standardizeHour(i) { if (i == 0) { return 12 } else if (i > 12) { return i - 12 } else { return i } }
+function amPm(i) { if (i < 12) { return 'AM' } else { return 'PM' } }
+
+function timeNow(format/* 12 (standard) || 24 (military) */) {
+  var today = new Date();
+  var h = today.getHours();
+  var m = today.getMinutes();
+  return standardizeHour(h) + ':' + checkTime(m) + ' ' + amPm(h) 
+}
+
+function testTime() {
+  updateJIRASyncTime(sheet.getRange(1,17));
+}
+
+
+// SPECIAL FORMATTING
+
+function updateJIRASyncTime(cell) {
+  var newCellData = Sheets.newCellData();
+  newCellData.textFormatRuns = [];
+  
+  for (var i = 0; i <= 16; i += 16) {
+  var newFmt = Sheets.newTextFormatRun();
+  newFmt.startIndex = i;
+  newFmt.format = Sheets.newTextFormat();
+  newFmt.format.foregroundColor = Sheets.newColor();
+      var red = 0.34;
+      var green = 0.73;
+      var blue = 0.54;
+    }
+    
+  newFmt.format.foregroundColor.red = red;
+  newFmt.format.foregroundColor.green = green;
+  newFmt.format.foregroundColor.blue = blue;
+  newCellData.textFormatRuns.push(newFmt);
+    
+  
+  var newValue = new Sheets.newExtendedValue();
+  newValue.setStringValue("Last JIRA Sync: " + timeNow(12)); 
+  newCellData.userEnteredValue = newValue;
+
+
+  // Create the request object.
+  var batchUpdateRQ = Sheets.newBatchUpdateSpreadsheetRequest();
+  batchUpdateRQ.requests = [];
+  batchUpdateRQ.requests.push(
+    {
+       "updateCells": {
+        "rows": [ { "values": newCellData } ],
+        "fields": "userEnteredValue, textFormatRuns",
+        "start": {
+          "sheetId": sheet.getSheetId(),
+          "rowIndex": cell.getRow() - 1,
+          "columnIndex": cell.getColumn() - 1
+        }
+      }
+    }
+  );
+  Sheets.Spreadsheets.batchUpdate(batchUpdateRQ, active.getId());
+}
 
 function coresLightText(cell) {
   var newCellData = Sheets.newCellData();
