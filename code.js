@@ -22,13 +22,14 @@ var advanceColorRight = goodGradient[cellColumn + 1];
 var revertColor = badGradient[cellColumn];
 var revertColorLeft = badGradient[cellColumn - 1];
 
-var stagedCell = sheet.getRange(cellRow, 4);
-var jiraCell = sheet.getRange(cellRow, 5);
-var itemCell = sheet.getRange(cellRow, 6);
-var itemEngineer = sheet.getRange(cellRow, 7);
-var itemWaitingOn = sheet.getRange(cellRow, 8);
-var itemLast = sheet.getRange(cellRow, 9);
+var stagedCell = sheet.getRange(cellRow, 3);
+var jiraCell = sheet.getRange(cellRow, 4);
+var itemCell = sheet.getRange(cellRow, 5);
+var itemEngineer = sheet.getRange(cellRow, 6);
+var itemWaitingOn = sheet.getRange(cellRow, 7);
+var itemLast = sheet.getRange(cellRow, 8);
       
+var researchColumn = 9;
 var planColumn = 10;
 var toDoColumn = planColumn + 1;
 var inProgressColumn = planColumn + 2;
@@ -55,11 +56,11 @@ var designer = settings.getRange(5, 2).getValue();
 var qaEngineer = settings.getRange(6, 2).getValue();
 var product = settings.getRange(7, 2).getValue();
       
+var syncTimeStampCell = sheet.getRange(1,16);
 var db = spreadsheet.getSheetByName('db');
 var currentWeek = db.getRange(1, 2);
 var stagedForNewWeek = db.getRange(2, 2);
 var now = new Date();
-// you took out api token declaration here
 
 /*
 NOTES:
@@ -78,6 +79,17 @@ function resetCell(row, column) {
   advanceColorRight = goodGradient[cellColumn + 1];
   revertColor = badGradient[cellColumn];
   revertColorLeft = badGradient[cellColumn - 1];
+  stagedCell = sheet.getRange(cellRow, 3);
+  jiraCell = sheet.getRange(cellRow, 4);
+  itemCell = sheet.getRange(cellRow, 5);
+  itemEngineer = sheet.getRange(cellRow, 6);
+  itemWaitingOn = sheet.getRange(cellRow, 7);
+  itemLast = sheet.getRange(cellRow, 8);
+  itemStart = sheet.getRange(cellRow, planColumn + 16);
+  itemGoal = sheet.getRange(cellRow, planColumn + 17);
+  itemCurrent = sheet.getRange(cellRow, planColumn + 18);
+  itemBlocker = sheet.getRange(cellRow, planColumn + 19);
+  markingGA = (cellColumn == gaColumn - 1);
 
 }
 
@@ -340,14 +352,10 @@ function timeNow(format/* 12 (standard) || 24 (military) */) {
   return standardizeHour(h) + ':' + checkTime(m) + ' ' + amPm(h) 
 }
 
-function testTime() {
-  updateJIRASyncTime(sheet.getRange(1,17));
-}
-
 
 // SPECIAL FORMATTING
 
-function updateJIRASyncTime(cell) {
+function updateLastSync(cell) {
   var newCellData = Sheets.newCellData();
   newCellData.textFormatRuns = [];
   
@@ -368,7 +376,7 @@ function updateJIRASyncTime(cell) {
     
   
   var newValue = new Sheets.newExtendedValue();
-  newValue.setStringValue("Last JIRA Sync: " + timeNow(12)); 
+  newValue.setStringValue("Last JIRA sync: " + timeNow(12)); 
   newCellData.userEnteredValue = newValue;
 
 

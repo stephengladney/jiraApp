@@ -17,18 +17,16 @@ function unSetAsGoal() {
   itemGoal.setValue(null);
 }
 
-function setAsStart(cellToSet) { 
-  if (!cellToSet) { cellToSet = cell }
-  cellToSet
+function setAsStart() { 
+  cell
   .setBorder(true, true, true, true, false, false, "#efefef", app.BorderStyle.SOLID)
   .setBackground("#4a86e8")
   .setFontColor("#ffffff")
   .setValue("START");
-  setItemStart(cellToSet.getColumn());
-  setItemCurrent(cellToSet.getColumn());
-  Logger.log(cellToSet.getColumn());
+  setItemStart(cell.getColumn());
+  setItemCurrent(cell.getColumn());
   updateLast("start");
-  assignWaitingOn(cellToSet);
+  assignWaitingOn(cell);
   updateCurrentStateColors();
 }
 
@@ -48,7 +46,6 @@ function unSetAsBlocker () {
     cell
   .setBorder(true, true, true, true, false, false, "#351c75", app.BorderStyle.SOLID)
   .setBackground(advanceColor)
-  .setFontColor("#ffffff")
   .setValue(null);
   setItemBlocker(null);
   updateLast("unblock");
