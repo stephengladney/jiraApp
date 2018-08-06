@@ -3,8 +3,9 @@ function setItemStart(start) { itemStart.setValue(start) }
 function setItemCurrent(n) { itemCurrent.setValue(n) }
 function setItemBlocker(n) { itemBlocker.setValue(n) }
 
-function setAsGoal() { 
-  cell
+function setAsGoal(cellToSet) { 
+  if (!cellToSet) { cellToSet = cell }
+  cellToSet
   .setBorder(true, true, true, true, false, false, "#efefef", app.BorderStyle.SOLID)
   .setBackground("#ffe599")
   .setValue("GOAL");
@@ -17,8 +18,9 @@ function unSetAsGoal() {
   itemGoal.setValue(null);
 }
 
-function setAsStart() { 
-  cell
+function setAsStart(cellToSet) { 
+  if (!cellToSet) { cellToSet = cell }
+  cellToSet
   .setBorder(true, true, true, true, false, false, "#efefef", app.BorderStyle.SOLID)
   .setBackground("#4a86e8")
   .setFontColor("#ffffff")
@@ -49,4 +51,23 @@ function unSetAsBlocker () {
   .setValue(null);
   setItemBlocker(null);
   updateLast("unblock");
+  itemCell.setFontColor("#f3f3f3");
+  jiraCell.setFontColor("#f3f3f3");
+}
+
+function setAllGoals () {
+  var rowsToSync = [];
+  var rowItem;
+  for (var r = 5; r < 40; r++){
+    rowItem = sheet.getRange(r, 5).getValue();
+    if (sheet.getRange(r, 2).getValue() == "Notes") { break }
+    if (rowItem != "") { rowsToSync.push(r) }
+  }
+  rowsToSync.forEach(function(i) {
+    goalSelect = sheet.getRange(i, goalSelectColumn);
+    resetCell(sheet, i, columnNameToColumnNumber(goalSelect.getValue()));
+    setAsGoal();        
+  }
+                    
+                    );                  
 }

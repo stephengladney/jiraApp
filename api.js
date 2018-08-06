@@ -52,7 +52,7 @@ function jiraToSheet(card) {
       break;
     default :
       if (card.gaColumn) { return gaColumn }
-      else { ui.alert("Unrecognized state detected") }
+      else { Logger.log("Unrecognized column detected") }
   }
 }
 
@@ -62,12 +62,12 @@ function syncTaskToJIRA(row) {
   var jiraData = getJIRA(jiraNumber);
   var columnInJIRA = jiraToSheet(jiraData);
   var difference = columnInJIRA - columnInSheet;
-  resetCell(row, columnInSheet);
+  resetCell(sheet, row, columnInSheet);
   if (difference > 0) {
     Logger.log("SYNC: Advancing card " + jiraNumber + " (" + difference + ") steps");
     for (var i = 1; i <= difference; i++) {
       advance();
-      resetCell(row, columnInSheet + i);
+      resetCell(sheet, row, columnInSheet + i);
     }
   }
   else if (difference < 0) {
@@ -75,7 +75,7 @@ function syncTaskToJIRA(row) {
     Logger.log("SYNC: Reverting card " + jiraNumber + " (" + difference + ") steps");
     for (var i = 1; i <= difference; i++) {
       revert();
-      resetCell(row, columnInSheet - i);
+      resetCell(sheet, row, columnInSheet - i);
     }
   }
   else if (difference == 0) {
@@ -90,8 +90,11 @@ function syncBoardToJIRA() {
     if (sheet.getRange(r, 2).getValue() == "Notes") { break }
     if (rowJIRA != "") { rowsToSync.push(r) }
   }
-  rowsToSync.forEach(function(i) {
+  rowsToSync.forEach(function(i, n) {
     syncTaskToJIRA(i);
+    percent = Math.round(((n + 1) / rowsToSync.length) * 100); 
+    syncingCell.setValue("Syncing: " + textStatusBar("[","|","]",10,percent) + " " + percent + "%");
   });
   updateLastSync(syncTimeStampCell);
+  syncingCell.setValue(null);
 }

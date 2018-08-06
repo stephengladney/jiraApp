@@ -40,6 +40,8 @@ var acceptColumn = planColumn + 6;
 var r4mColumn = planColumn + 7;
 var mergedColumn = planColumn + 8;
 var gaColumn = planColumn + 9;
+var goalSelectColumn = planColumn + 10;
+var goalSelect = sheet.getRange(cellRow, goalSelectColumn);
       
 //var canProgress = (cellColumn >= planColumn && cellColumn < gaColumn);
 //var canRevert = (cellColumn >= toDoColumn && cellColumn <= gaColumn);
@@ -67,7 +69,8 @@ NOTES:
 "Light" gray is light gray 1
 */
 
-function resetCell(row, column) {
+function resetCell(zheet, row, column) {
+  sheet = zheet;
   cell = sheet.getRange(row, column);
   cellColumn = column;
   cellRow = row;       
@@ -213,8 +216,8 @@ function startNewWeek() {
   if (stagedForNewWeek.getValue() == false) {
   var rowsToTransfer = [];  
   for (var r = 5; r < 40; r++){
-    rItem = sheet.getRange(r, 6).getValue();
-    rItemCurrentPosition = sheet.getRange(r, 28).getValue();
+    rItem = sheet.getRange(r, 5).getValue();
+    rItemCurrentPosition = sheet.getRange(r, planColumn + 18).getValue();
     if (sheet.getRange(r, 2).getValue() == "Notes") { break }
     if (rItem != "" && rItemCurrentPosition < gaColumn) {
       rowsToTransfer.push({"values": [{"userEnteredValue": {"boolValue": true}}]});
@@ -226,7 +229,7 @@ function startNewWeek() {
       {
         "repeatCell": {
           "cell": {"dataValidation": {"condition": {"type": "BOOLEAN"}}},
-          "range": {"sheetId": sheet.getSheetId(), "startRowIndex": 4, "endRowIndex": r - 1, "startColumnIndex": 3, "endColumnIndex": 4},
+          "range": {"sheetId": sheet.getSheetId(), "startRowIndex": 4, "endRowIndex": r - 1, "startColumnIndex": 2, "endColumnIndex": 3},
           "fields": "dataValidation"
         }
       }
@@ -234,7 +237,7 @@ function startNewWeek() {
       {
         "updateCells": {
           "rows": rowsToTransfer,
-          "start": {"rowIndex": 4, "columnIndex": 3, "sheetId": sheet.getSheetId()},
+          "start": {"rowIndex": 4, "columnIndex": 2, "sheetId": sheet.getSheetId()},
           "fields": "userEnteredValue"
         }
       }
@@ -247,7 +250,7 @@ function startNewWeek() {
            }
       }]};
     
-    sheet.showColumns(4);
+    sheet.showColumns(3);
 //    ui.alert("A wild column appears!", "Check those you wish to roll over to next week. Items that are not at goal have been checked for you. When you are ready to create the new sheet, hit the New week command again.", ui.ButtonSet.OK);
                           
   Sheets.Spreadsheets.batchUpdate(resource, active.getId());
@@ -259,99 +262,54 @@ function startNewWeek() {
     var rowsToCopy = [];
     
     for (var r = 5; r < 40; r++) {
-      if (oldSheet.getRange(r, 4).getValue() == true) { rowsToCopy.push(r); }
+      if (oldSheet.getRange(r, 2).getValue() == "Notes") { break }
+      if (oldSheet.getRange(r, 3).getValue() == true) { rowsToCopy.push(r); }
     }
   
     rowsToCopy.forEach(function(row,i) {
       var r = i + 5;
       var oldSheet_epic = oldSheet.getRange(row, 2).getValue();
-      var oldSheet_link = oldSheet.getRange(row, 3).getFormula();
-      var oldSheet_jira = oldSheet.getRange(row, 5).getValue();
-      var oldSheet_item = oldSheet.getRange(row, 6).getValue();
-      var oldSheet_engineer = oldSheet.getRange(row, 7).getValue();
-      var oldSheet_atBat = oldSheet.getRange(row, 8).getValue();
+      var oldSheet_jira = oldSheet.getRange(row, 4).getValue();
+      var oldSheet_item = oldSheet.getRange(row, 5).getValue();
+      var oldSheet_engineer = oldSheet.getRange(row, 6).getValue();
+      var oldSheet_atBat = oldSheet.getRange(row, 7).getValue();
       var oldSheet_rCurrent = oldSheet.getRange(row, planColumn + 18).getValue();
 
       var newSheet_epic = newSheet.getRange(r, 2);
-      var newSheet_link  = newSheet.getRange(r, 3);
-      var newSheet_jira = newSheet.getRange(r, 5);
-      var newSheet_item = newSheet.getRange(r, 6);
-      var newSheet_engineer = newSheet.getRange(r, 7);
-      var newSheet_atBat = newSheet.getRange(r, 8);
+      var newSheet_jira = newSheet.getRange(r, 4);
+      var newSheet_item = newSheet.getRange(r, 5);
+      var newSheet_engineer = newSheet.getRange(r, 6);
+      var newSheet_atBat = newSheet.getRange(r, 7);
 
       newSheet.getRange(r,6).activate();
       newSheet_epic.setValue(oldSheet_epic);
-      newSheet_link.setFormula(oldSheet_link);
-      newSheet_jira.setValue(oldSheet_jira);
+      newSheet_jira.setFormula('=HYPERLINK("https://salesloft.atlassian.net/browse/SL-' + oldSheet_jira + '", "' + oldSheet_jira + '")');
       newSheet_item.setValue(oldSheet_item);
       newSheet_engineer.setValue(oldSheet_engineer);
       newSheet_atBat.setValue(oldSheet_atBat);
 
       // Set dependent variables to new sheet before executing setAsStart
-      sheet = newSheet;
-      itemStart = newSheet.getRange(r, planColumn + 16); 
-      itemCurrent = newSheet.getRange(r, planColumn + 18); 
-      itemCell = newSheet_item; 
-      jiraCell = newSheet_jira;
-      stagedCell = newSheet.getRange(r, 4);
-      itemWaitingOn = newSheet_atBat;
-      itemLast = newSheet.getRange(r, 9);
-      itemGoal = newSheet.getRange(r, planColumn + 17);
-      itemBlocker = newSheet.getRange(r, planColumn + 19);
-      setAsStart(newSheet.getRange(r, oldSheet_rCurrent));        
+//      sheet = newSheet;
+//      itemStart = newSheet.getRange(r, planColumn + 16); 
+//      itemCurrent = newSheet.getRange(r, planColumn + 18); 
+//      itemCell = newSheet_item; 
+//      jiraCell = newSheet_jira;
+//      stagedCell = newSheet.getRange(r, 3);
+//      itemWaitingOn = newSheet_atBat;
+//      itemLast = newSheet.getRange(r, 8);
+//      itemGoal = newSheet.getRange(r, planColumn + 17);
+//      itemBlocker = newSheet.getRange(r, planColumn + 19);
+      resetCell(newSheet, r, oldSheet_rCurrent);
+      setAsStart();        
       newSheet.getRange(r, 2).setBackground(oldSheet.getRange(row, 2).getBackground()); // Set epic background
       newSheet.getRange(r, 2).setFontColor(oldSheet.getRange(row, 2).getFontColor()); // Set epic font color
       stagedCell.setValue(""); // Clear staged for next week
     });
 
     currentWeek.setValue(dateNow());
-    stagedForNewWeek.setValues(false);
+    stagedForNewWeek.setValue(false);
   }
 }
-
-
-// MISC FUNCTIONS
-
-function whoAmI() {
-  ui.alert(sheet.getSheetId());
-}
-
-function dateNow() {
-  var today  = new Date(),
-      day = today.getDate(),
-      m = today.getMonth() + 1;
-
-  return String(m + "/" + day) 
-}
-
-
-function weekdayNow() {
-  var today = new Date(),
-      day = today.getDay(),
-      days = ["Sun", "Mon", "Tue", "Wed", "Thurs", "Fri", "Sat"];
-
-  return days[day];
-}
-
-function reformatJIRADate(str) {
-  return new Date(str.substring(0,4), Number(str.substring(5,7)) - 1, str.substring(8,10), str.substring(11,13), str.substring(14,16));
-}
-
-function dateDiff(first, second) {
-    return Math.round((second - first)/(1000*60*60*24));
-}
-
-function checkTime(i) { if (i < 10) { return "0" + i } else { return i } }
-function standardizeHour(i) { if (i == 0) { return 12 } else if (i > 12) { return i - 12 } else { return i } }
-function amPm(i) { if (i < 12) { return 'AM' } else { return 'PM' } }
-
-function timeNow(format/* 12 (standard) || 24 (military) */) {
-  var today = new Date();
-  var h = today.getHours();
-  var m = today.getMinutes();
-  return standardizeHour(h) + ':' + checkTime(m) + ' ' + amPm(h) 
-}
-
 
 // SPECIAL FORMATTING
 
