@@ -83,8 +83,13 @@ function syncTaskToJIRA(row) {
 }
 
 function syncBoardToJIRA() {
+  var currentWeek = db.getRange(1, 2);
+  var stagedForNewWeek = db.getRange(2, 2);
+  var syncTimeStampCell = sheet.getRange(1,16);
+  var syncingCell = sheet.getRange(1,11);
   var rowsToSync = [];
   var rowJIRA;
+  sheet = spreadsheet.getSheetByName(currentWeek.getValue());
   for (var r = 5; r < 40; r++){
     rowJIRA = sheet.getRange(r, 4).getValue();
     if (sheet.getRange(r, 2).getValue() == "Notes") { break }
@@ -93,7 +98,7 @@ function syncBoardToJIRA() {
   rowsToSync.forEach(function(i, n) {
     syncTaskToJIRA(i);
     percent = Math.round(((n + 1) / rowsToSync.length) * 100); 
-    syncingCell.setValue("Syncing: " + textStatusBar("[","|","]",10,percent) + " " + percent + "%");
+    syncingCell.setValue("Syncing: " + textStatusBar("[","|","]", 10, percent) + " " + percent + "%");
   });
   updateLastSync(syncTimeStampCell);
   syncingCell.setValue(null);

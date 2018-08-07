@@ -1,6 +1,6 @@
 var app = SpreadsheetApp;
 var active = app.getActive();
-var ui = app.getUi();
+//var ui = app.getUi();
     
 var spreadsheet = app.getActiveSpreadsheet();
 var sheet = spreadsheet.getActiveSheet();
@@ -10,58 +10,55 @@ var cellRow = cell.getRow();
     
 var columns = [0,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
     
-var cellLeft = sheet.getRange(cellRow, cellColumn - 1);
+if (cellColumn > 1) { var cellLeft = sheet.getRange(cellRow, cellColumn - 1) }
 var cellRight = sheet.getRange(cellRow, cellColumn + 1);
-var cellLeftA1Notation = columns[cellColumn - 1] + cellRow;
+if (cellColumn < 1) { var cellLeftA1Notation = columns[cellColumn - 1] + cellRow }
 var cellRightA1Notation = columns[cellColumn + 1] + cellRow;
   
-var goodGradient = [0,0,0,0,0,0,0,0,0,0,"#43606f","#456b72","#487675","#4a8279","#4d8d7c","#4f987f","#52a483","#54af86","#57bb8a"];
-var badGradient = [0,0,0,0,0,0,0,0,0,"#e06666","#d36165","#c55b63","#b85562","#aa4f60","#9d495e","#8f435d","#823d5b","#743759"];
+var goodGradient = [0,0,0,0,0,0,0,0,0,"#43606f", "#456972", "#477275", "#497b78", "#4b847b", "#4d8d7e", "#4f9681", "#519f84", "#53a887", "#55b18a", "#57bb8a"];
+var badGradient = [0,0,0,0,0,0,0,0,0,"#e06666", "#d56165", "#ca5c64", "#bf5762", "#b45261", "#a94d60", "#9e485e", "#93435d", "#883e5c", "#7d395a", "#743759"];
 var advanceColor = goodGradient[cellColumn];
 var advanceColorRight = goodGradient[cellColumn + 1];
 var revertColor = badGradient[cellColumn];
 var revertColorLeft = badGradient[cellColumn - 1];
 
-var stagedCell = sheet.getRange(cellRow, 3);
-var jiraCell = sheet.getRange(cellRow, 4);
-var itemCell = sheet.getRange(cellRow, 5);
-var itemEngineer = sheet.getRange(cellRow, 6);
-var itemWaitingOn = sheet.getRange(cellRow, 7);
-var itemLast = sheet.getRange(cellRow, 8);
+var sheetColumns = ["","EPIC","S","JIRA","Item","Engineer","At bat","Last","RSRCH","PLAN","TO DO","IN PROG","R4R","DESIGN","QA","ACCT","R4M","MRGD","GA","","","","","","","start","goal","current","block","30"];
+// Run newLayout() to get current column layout
+
+function findColumn(string) {
+  return sheetColumns.indexOf(string) + 1;
+}
+
+var stagedCell = sheet.getRange(cellRow, findColumn("S"));
+var jiraCell = sheet.getRange(cellRow, findColumn("JIRA"));
+var itemCell = sheet.getRange(cellRow, findColumn("Item"));
+var itemEngineer = sheet.getRange(cellRow, findColumn("Engineer"));
+var itemWaitingOn = sheet.getRange(cellRow, findColumn("At bat"));
+var itemLast = sheet.getRange(cellRow, findColumn("Last"));
       
-var researchColumn = 9;
-var planColumn = 10;
-var toDoColumn = planColumn + 1;
-var inProgressColumn = planColumn + 2;
-var r4rColumn = planColumn + 3;
-var designColumn = planColumn + 4;
-var qaColumn = planColumn + 5;
-var acceptColumn = planColumn + 6;
-var r4mColumn = planColumn + 7;
-var mergedColumn = planColumn + 8;
-var gaColumn = planColumn + 9;
-var goalSelectColumn = planColumn + 10;
-var goalSelect = sheet.getRange(cellRow, goalSelectColumn);
+var researchColumn = findColumn("RSRCH");
+var planColumn = findColumn("PLAN");
+var toDoColumn = findColumn("TO DO");
+var inProgressColumn = findColumn("IN PROG");
+var r4rColumn = findColumn("R4R");
+var designColumn = findColumn("DESIGN");
+var qaColumn = findColumn("QA");
+var acceptColumn = findColumn("ACCT");
+var r4mColumn = findColumn("R4R");
+var mergedColumn = findColumn("MRGD");
+var gaColumn = findColumn("GA");
       
 //var canProgress = (cellColumn >= planColumn && cellColumn < gaColumn);
 //var canRevert = (cellColumn >= toDoColumn && cellColumn <= gaColumn);
       
-var itemStart = sheet.getRange(cellRow, planColumn + 16);
-var itemGoal = sheet.getRange(cellRow, planColumn + 17);
-var itemCurrent = sheet.getRange(cellRow, planColumn + 18);
-var itemBlocker = sheet.getRange(cellRow, planColumn + 19);
+var itemStart = sheet.getRange(cellRow, findColumn("start"));
+var itemGoal = sheet.getRange(cellRow, findColumn("goal"));
+var itemCurrent = sheet.getRange(cellRow, findColumn("current"));
+var itemBlocker = sheet.getRange(cellRow, findColumn("block"));
     
 var markingGA = (cellColumn == gaColumn - 1);
-
-var settings = spreadsheet.getSheetByName("Settings");
-var designer = settings.getRange(5, 2).getValue();
-var qaEngineer = settings.getRange(6, 2).getValue();
-var product = settings.getRange(7, 2).getValue();
       
-var syncTimeStampCell = sheet.getRange(1,16);
 var db = spreadsheet.getSheetByName('db');
-var currentWeek = db.getRange(1, 2);
-var stagedForNewWeek = db.getRange(2, 2);
 var now = new Date();
 
 /*
@@ -69,11 +66,18 @@ NOTES:
 "Light" gray is light gray 1
 */
 
-function resetCell(zheet, row, column) {
-  sheet = zheet;
-  cell = sheet.getRange(row, column);
-  cellColumn = column;
-  cellRow = row;       
+function checkEdit() {
+  if (sheet.getName() == "Settings") { return }
+  if (cell.getValue() == "START") { setAsStart() }
+  if (cell.getValue() == "BLOCKER") { blocker() }
+  if (cell.getValue() == "GOAL") { setAsGoal() }
+}
+
+function resetCell(newSheet, newRow, newColumn) {
+  sheet = newSheet;
+  cell = sheet.getRange(newRow, newColumn);
+  cellColumn = newColumn;
+  cellRow = newRow;       
   cellLeft = sheet.getRange(cellRow, cellColumn - 1);
   cellRight = sheet.getRange(cellRow, cellColumn + 1);
   cellLeftA1Notation = columns[cellColumn - 1] + cellRow;
@@ -103,6 +107,11 @@ function isItemBlocker(cell) { return (cell.getColumn() == itemBlocker.getValue(
 
 
 function assignWaitingOn(cell) {
+  var settings = spreadsheet.getSheetByName("Settings");
+  var designer = settings.getRange(5, 2).getValue();
+  var qaEngineer = settings.getRange(6, 2).getValue();
+  var product = settings.getRange(7, 2).getValue();
+
   switch(cell.getColumn()) {
     case inProgressColumn:
   itemWaitingOn.setValue(itemEngineer.getValue());
@@ -211,6 +220,8 @@ function updateLast(direction) {
 }
 
 function startNewWeek() {
+  var currentWeek = db.getRange(1, 2);
+  var stagedForNewWeek = db.getRange(2, 2);
   var rItem;
   var rItemCurrentPosition;
   if (stagedForNewWeek.getValue() == false) {
@@ -288,17 +299,6 @@ function startNewWeek() {
       newSheet_engineer.setValue(oldSheet_engineer);
       newSheet_atBat.setValue(oldSheet_atBat);
 
-      // Set dependent variables to new sheet before executing setAsStart
-//      sheet = newSheet;
-//      itemStart = newSheet.getRange(r, planColumn + 16); 
-//      itemCurrent = newSheet.getRange(r, planColumn + 18); 
-//      itemCell = newSheet_item; 
-//      jiraCell = newSheet_jira;
-//      stagedCell = newSheet.getRange(r, 3);
-//      itemWaitingOn = newSheet_atBat;
-//      itemLast = newSheet.getRange(r, 8);
-//      itemGoal = newSheet.getRange(r, planColumn + 17);
-//      itemBlocker = newSheet.getRange(r, planColumn + 19);
       resetCell(newSheet, r, oldSheet_rCurrent);
       setAsStart();        
       newSheet.getRange(r, 2).setBackground(oldSheet.getRange(row, 2).getBackground()); // Set epic background
@@ -309,6 +309,25 @@ function startNewWeek() {
     currentWeek.setValue(dateNow());
     stagedForNewWeek.setValue(false);
   }
+}
+
+function insertMondayCommit() {
+  var newItem
+  var newStart
+  var ui = app.getUi();
+  var newJIRA = ui.prompt("Is there already a JIRA card for this? (Enter below if so)", ui.ButtonSet.YES_NO);
+  sheet.insertRowBefore(addedRow());
+  
+  if (newJIRA.getSelectedButton() == ui.Button.YES) {
+    newJIRA = newJIRA.getResponseText();
+    newItem = getJIRA(newJIRA).title;
+    
+  } else if (newJIRA.getSelectedButton() == ui.Button.NO) {
+    newJIRA = ""
+  }
+      sheet.getRange(addedRow() - 1, jiraColumn).setValue(newJIRA);
+  
+  
 }
 
 // SPECIAL FORMATTING
@@ -334,7 +353,7 @@ function updateLastSync(cell) {
     
   
   var newValue = new Sheets.newExtendedValue();
-  newValue.setStringValue("Last JIRA sync: " + timeNow(12)); 
+  newValue.setStringValue("Last JIRA sync:  " + weekdayNow() + " " + timeNow(12)); 
   newCellData.userEnteredValue = newValue;
 
 

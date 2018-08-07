@@ -1,4 +1,5 @@
 function whoAmI() {
+  var ui = app.getUi();
   ui.alert(sheet.getSheetId());
 }
 
@@ -38,42 +39,25 @@ function timeNow(format/* 12 (standard) || 24 (military) */) {
   return standardizeHour(h) + ':' + checkTime(m) + ' ' + amPm(h) 
 }
 
-function columnNameToColumnNumber(name) {
-  switch(name) {
-    case "RSRCH" :
-      return researchColumn;
-      break;
-    case "PLAN" :
-      return planColumn;
-      break;
-    case "TO DO" :
-      return toDoColumn;
-      break;
-    case "IN PROG" :
-      return inProgressColumn;
-      break;
-    case "R4R" :
-      return r4rColumn;
-      break;
-    case "DESIGN" :
-      return designColumn;
-      break;
-    case "QA" :
-      return qaColumn;
-      break;
-    case "ACCT" :
-      return acceptColumn;
-      break;
-    case "R4M" :
-      return r4mColumn;
-      break;
-    case "MRGD" :
-      return mergedColumn;
-      break;
-    case "GA" :
-      return gaColumn;
-      break;
-    default:
-      return gaColumn;
+function textStatusBar(left, char, right, units, percent) {
+    var result = left;
+    var numOfChars = Math.floor((percent / 100) * units);
+    var numOfSpaces = Math.floor(((100 - percent) / 100) * units);
+    for (var i = 1; i <= numOfChars; i++) {
+        result+= char;
+    }
+    for (var i = 1; i <= numOfSpaces; i++) {
+        result+= " ";
+    }
+    result+= right;
+    return result;
+}
+
+function addedRow() {
+  var cellCheck
+    for (var r = 5; r < 40; r++) {
+    cellCheck = sheet.getRange(r, 2).getValue();
+    if (cellCheck == "ADDED") { return r }
+    if (cellCheck == "Notes" ) { break }
   }
 }
