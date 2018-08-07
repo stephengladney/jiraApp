@@ -61,3 +61,8 @@ function addedRow() {
     if (cellCheck == "Notes" ) { break }
   }
 }
+
+function emailToEngineer(email) {
+  if (email == "Unassigned") { return "Unassigned" }
+  return settings.getRange(4, teamEmails.indexOf(email) + 2).getValue();
+}

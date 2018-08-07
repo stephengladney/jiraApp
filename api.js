@@ -1,7 +1,7 @@
 function getJIRA(card) {
   var jira = UrlFetchApp;
   var returnData = {};
-  var call = jira.fetch("https://salesloft.atlassian.net/rest/api/2/issue/SL-" + card + "?fields=assignee,status,summary", 
+  var call = jira.fetch("https://salesloft.atlassian.net/rest/api/2/issue/SL-" + card + "?fields=assignee,status,summary,created", 
 //  var call = jira.fetch("https://salesloft.atlassian.net/rest/agile/1.0/issue/SL-" + card + "?fields=assignee,status,created,summary,epic", 
                             { headers: {
                               "Authorization": "Basic " + apiToken,
@@ -9,12 +9,12 @@ function getJIRA(card) {
                             }}               
                            );
   var response = JSON.parse((call.getContentText()));
-  if (response.fields.assignee == null) { returnData.engineer = "Unassigned" }
-  else { returnData.engineer = response.fields.assignee.displayName }
+  if (response.fields.assignee == null) { returnData.engineerEmail = "Unassigned" }
+  else { returnData.engineerEmail = response.fields.assignee.emailAddress }
 
     returnData.currentColumn = response.fields.status.name;
     returnData.gaColumn = response.fields.status.statusCategory.name == "Done";
-    returnData.age = response.fields.created;
+    returnData.age = dateDiff(reformatJIRADate(response.fields.created), now);
     returnData.title = response.fields.summary;
 //    epic: response.fields.epic.name,
       return returnData;
@@ -57,9 +57,24 @@ function jiraToSheet(card) {
 }
 
 function syncTaskToJIRA(row) {
-  var columnInSheet = sheet.getRange(row, planColumn + 18).getValue();
-  var jiraNumber = sheet.getRange(row, 4).getValue();
+  var currentJIRA = sheet.getRange(row, findColumn("JIRA"));
+  var jiraNumber = currentJIRA.getValue();
   var jiraData = getJIRA(jiraNumber);
+  var currentItem = sheet.getRange(row, findColumn("Item"));
+  var currentEpic = sheet.getRange(row, findColumn("EPIC"));
+  var currentCurrent = sheet.getRange(row, findColumn("current"));
+  var currentEngineer = sheet.getRange(row, findColumn("Engineer"));
+  var engineerName = emailToEngineer(jiraData.engineerEmail);
+
+  if (jiraData.title != currentItem.getValue()) { currentItem.setValue(jiraData.title) }
+  if (engineerName != currentEngineer.getValue()) { currentEngineer.setValue(engineerName) }
+  
+  if (jiraData.age >= 7 && currentEpic.getValue() == "Customer Defect" && currentCurrent.getValue() != gaColumn) { 
+    currentItem.setBackground("#ff0000").setFontColor("#ffffff").setNote("Aging Defect Warning: " + jiraData.age + " days");
+    currentJIRA.setBackground("#ff0000").setFontColor("#ffffff");
+  }
+
+  var columnInSheet = sheet.getRange(row, findColumn("current")).getValue();
   var columnInJIRA = jiraToSheet(jiraData);
   var difference = columnInJIRA - columnInSheet;
   resetCell(sheet, row, columnInSheet);
@@ -83,8 +98,7 @@ function syncTaskToJIRA(row) {
 }
 
 function syncBoardToJIRA() {
-  var currentWeek = db.getRange(1, 2);
-  var stagedForNewWeek = db.getRange(2, 2);
+//  var stagedForNewWeek = db.getRange(2, 2);
   var syncTimeStampCell = sheet.getRange(1,16);
   var syncingCell = sheet.getRange(1,11);
   var rowsToSync = [];

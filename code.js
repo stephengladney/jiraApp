@@ -29,6 +29,7 @@ function findColumn(string) {
   return sheetColumns.indexOf(string) + 1;
 }
 
+var epicCell = sheet.getRange(cellRow, findColumn("EPIC"));
 var stagedCell = sheet.getRange(cellRow, findColumn("S"));
 var jiraCell = sheet.getRange(cellRow, findColumn("JIRA"));
 var itemCell = sheet.getRange(cellRow, findColumn("Item"));
@@ -57,21 +58,15 @@ var itemCurrent = sheet.getRange(cellRow, findColumn("current"));
 var itemBlocker = sheet.getRange(cellRow, findColumn("block"));
     
 var markingGA = (cellColumn == gaColumn - 1);
-      
+var settings = spreadsheet.getSheetByName("Settings");
 var db = spreadsheet.getSheetByName('db');
+var currentWeek = db.getRange(1, 2);
 var now = new Date();
 
 /*
 NOTES:
 "Light" gray is light gray 1
 */
-
-function checkEdit() {
-  if (sheet.getName() == "Settings") { return }
-  if (cell.getValue() == "START") { setAsStart() }
-  if (cell.getValue() == "BLOCKER") { blocker() }
-  if (cell.getValue() == "GOAL") { setAsGoal() }
-}
 
 function resetCell(newSheet, newRow, newColumn) {
   sheet = newSheet;
@@ -107,7 +102,6 @@ function isItemBlocker(cell) { return (cell.getColumn() == itemBlocker.getValue(
 
 
 function assignWaitingOn(cell) {
-  var settings = spreadsheet.getSheetByName("Settings");
   var designer = settings.getRange(5, 2).getValue();
   var qaEngineer = settings.getRange(6, 2).getValue();
   var product = settings.getRange(7, 2).getValue();
