@@ -45,7 +45,7 @@ var r4rColumn = findColumn("R4R");
 var designColumn = findColumn("DESIGN");
 var qaColumn = findColumn("QA");
 var acceptColumn = findColumn("ACCT");
-var r4mColumn = findColumn("R4R");
+var r4mColumn = findColumn("R4M");
 var mergedColumn = findColumn("MRGD");
 var gaColumn = findColumn("GA");
       
@@ -280,6 +280,7 @@ function startNewWeek() {
       var oldSheet_atBat = oldSheet.getRange(row, 7).getValue();
       var oldSheet_rCurrent = oldSheet.getRange(row, planColumn + 18).getValue();
 
+      if (r == findRow(newSheet, 2, "ADDED")) { newSheet.insertRowBefore(addedRow(newSheet)) }
       var newSheet_epic = newSheet.getRange(r, 2);
       var newSheet_jira = newSheet.getRange(r, 4);
       var newSheet_item = newSheet.getRange(r, 5);

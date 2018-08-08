@@ -45,7 +45,7 @@ function jiraToSheet(card) {
       return acceptColumn;
       break;
     case "Ready for Merge" :
-      return r4mColumns;
+      return r4mColumn;
       break;
     case "Merged" :
       return mergedColumn;
@@ -106,7 +106,7 @@ function syncBoardToJIRA() {
   sheet = spreadsheet.getSheetByName(currentWeek.getValue());
   for (var r = 5; r < 40; r++){
     rowJIRA = sheet.getRange(r, 4).getValue();
-    if (sheet.getRange(r, 2).getValue() == "Notes") { break }
+    if (sheet.getRange(r, 2).getValue() == "Command Line") { break }
     if (rowJIRA != "") { rowsToSync.push(r) }
   }
   rowsToSync.forEach(function(i, n) {
@@ -116,4 +116,5 @@ function syncBoardToJIRA() {
   });
   updateLastSync(syncTimeStampCell);
   syncingCell.setValue(null);
+  updateStatusBar(currentWeekGoalAchievement());
 }
